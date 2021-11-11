@@ -123,7 +123,7 @@ export default function App() {
   }
 
   async function garageOpen(status) {
-    (await fetch(apiUrl + '/open'))
+    (await fetch(apiUrl + 'open'))
       .json()
       .then(res => {
         setShowMessage(true)
