@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "674831099323",
+    "project_id": "proktekgarageremote",
+    "storage_bucket": "proktekgarageremote.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674831099323:android:c1f3d2c8440cf17f0a109e",
+        "android_client_info": {
+          "package_name": "com.maddriver.ProktekGarageRemote"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "674831099323-nsq5nrp9mtti2rj5djkg8r5tgr38pres.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNV2hOLjw6HW8uy3bcQthL9F-TvUv0at4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "674831099323-nsq5nrp9mtti2rj5djkg8r5tgr38pres.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
