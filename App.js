@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import {Animated, Share, Pressable, Modal, TouchableHighlight, StyleSheet, Text, View, Button } from 'react-native';
+import {Animated, Share, Pressable, Modal, TouchableHighlight, StyleSheet, Text, View, Button, ActivityIndicator } from 'react-native';
 
 import { initializeApp } from "firebase/app";
 //import { getMessaging, getToken } from "firebase/messaging";
@@ -15,10 +15,13 @@ export default function App() {
   const [apiRepsonse, setApiRepsonse] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState("");
   const [garageStatus, setGarageStatus] = useState('open');
   const [deviceId, setDeviceId] = useState('Cihaz kimliği bulunamadı!');
   const [countDownRunning, setCountDownRunning] = useState(false);
   const [kalanSure, setKalanSure] = useState(5);
+  const [progressVisible, setProgressVisible] = useState(false);
+  
   // Your web app's Firebase configuration
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
@@ -93,6 +96,17 @@ export default function App() {
     }
   };
 
+  const CustomProgressBar = ({ visible }) => (
+    <Modal onRequestClose={() => null} visible={visible}>
+      <View style={{ flex: 1, backgroundColor: '#dcdcdc', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ borderRadius: 10, backgroundColor: 'white', padding: 25 }}>
+          <Text style={{ fontSize: 20, fontWeight: '200', padding:10 }}>Lütfen bekleyiniz</Text>
+          <ActivityIndicator size="large" />
+        </View>
+      </View>
+    </Modal>
+  );
+
   useEffect(() => {
     getdeviceId();
   }, []);
@@ -123,18 +137,72 @@ export default function App() {
   }
 
   async function garageOpen(status) {
-    (await fetch(apiUrl + 'open'))
+    try {
+      setProgressVisible(true);
+      (await fetch(apiUrl + 'open'))
       .json()
       .then(res => {
-        setShowMessage(true)
-        setApiRepsonse(res)
+        setProgressVisible(false);
+        setMessage(res.success ? "Bariyeri açma emri gönderildi!" : apiRepsonse.response);
+        setApiRepsonse(res);
+        setShowMessage(true);
         Analytics.logEvent('ProktekGarage', res);
+      })
+      .catch((error) => {        
+        setProgressVisible(false);
+        console.log(error);
+        setMessage('Hata: ' + error.message);
+        setApiRepsonse({response: error.message, success:false});
+        setShowMessage(true);
+        Analytics.logEvent('ProktekGarage', error);
       });
       Analytics.logEvent('ProktekGarage', {garage: 'Open', deviceId: deviceId});
+    }
+    catch (error){
+      setProgressVisible(false);
+      console.log(error);
+      setMessage('Hata: ' + error.message);
+      setApiRepsonse({response: error.message, success:false});
+      setShowMessage(true);
+      Analytics.logEvent('ProktekGarage', error);
+    }
+  }
+
+  async function garageTest() {
+    try {
+      setProgressVisible(true);
+      (await fetch(apiUrl + 'test'))
+      .json()
+      .then(res => {
+        setProgressVisible(false);
+        setMessage(res.success ? "Aygıt ile bağlantı başarılı." : apiRepsonse.response);
+        setApiRepsonse(res);
+        setShowMessage(true);
+        Analytics.logEvent('ProktekGarage', res);
+      })
+      .catch((error) => {        
+        setProgressVisible(false);
+        console.log(error);
+        setMessage('Hata: ' + error.message);
+        setApiRepsonse({response: error.message, success:false});
+        setShowMessage(true);
+        Analytics.logEvent('ProktekGarage', error);
+      });
+      Analytics.logEvent('ProktekGarage', {garage: 'Open', deviceId: deviceId});
+    }
+    catch (error){
+      setProgressVisible(false);
+      console.log(error);
+      setMessage('Hata: ' + error.message);
+      setApiRepsonse({response: error.message, success:false});
+      setShowMessage(true);
+      Analytics.logEvent('ProktekGarage', error);
+    }
   }
 
   return (
     <View style={styles.container}>
+      <CustomProgressBar visible={progressVisible} />
       <Modal
         animationType="fade"
         transparent={false}
@@ -142,9 +210,9 @@ export default function App() {
       >  
         <View style={styles.centeredView}>                
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>{apiRepsonse.success ? (garageStatus == 'open' ? "Garaj açma emri gönderildi!" : "Garaj kapatma emri gönderildi!") : apiRepsonse.response}</Text>
+            <Text style={styles.modalText}>{message}</Text>
             <Pressable
-              style={[styles.button, styles.buttonOkGray]}
+              style={[styles.button, apiRepsonse.success ? styles.buttonOk : styles.buttonCancel]}
               onPress={() => setShowMessage(!showMessage)}
             >
               <Text style={styles.textStyle}>TAMAM</Text>
@@ -179,7 +247,7 @@ export default function App() {
             );}}
           </CountdownCircleTimer>                
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Garaj 5 saniye içerisinde {garageStatus == 'open' ? 'açılacaktır' : 'kapatılacaktır'}</Text>
+            <Text style={styles.modalText}>Bariyer 5 saniye içerisinde {garageStatus == 'open' ? 'açılacaktır' : 'kapatılacaktır'}</Text>
             <Pressable
               style={[styles.button, styles.buttonOk]}
               onPress={() => commitGarageCommand()}
@@ -200,7 +268,13 @@ export default function App() {
           style={[styles.button, styles.buttonOpen]}
           onPress={() => confirmGarageOpen()}
         >
-          <Text style={styles.textStyle}>Garaj Aç</Text>
+          <Text style={styles.textStyle}>BARİYERİ AÇ</Text>
+        </TouchableHighlight>
+        <TouchableHighlight
+          style={[styles.button, styles.buttonCancel]}
+          onPress={() => garageTest()}
+        >
+          <Text style={styles.textStyle}>TEST</Text>
         </TouchableHighlight>
       </View>
       <View style={styles.deviceid}>
@@ -270,7 +344,7 @@ const styles = StyleSheet.create({
     elevation: 0
   },
   buttonOpen: {
-    padding: 30,
+    padding: 40,
     backgroundColor: "dodgerblue",
   },
   buttonClose: {
@@ -299,7 +373,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 20
+    fontSize: 22
   },
   modalText: {
     fontSize: 20,
