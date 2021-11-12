@@ -274,7 +274,7 @@ export default function App() {
           style={[styles.button, styles.buttonCancel]}
           onPress={() => garageTest()}
         >
-          <Text style={styles.textStyle}>TEST</Text>
+          <Text style={styles.textStyle}>BAĞLANTI TEST</Text>
         </TouchableHighlight>
       </View>
       <View style={styles.deviceid}>
