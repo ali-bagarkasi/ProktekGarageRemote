@@ -11,7 +11,8 @@ import getInstallationIdAsync from 'expo/build/environment/getInstallationIdAsyn
 import { CountdownCircleTimer } from 'react-native-countdown-circle-timer'
 
 export default function App() {
-  const apiUrl = "http://local.proktek.com.tr:65333/"
+  //const apiUrl = "http://local.proktek.com.tr:65333/"
+  const apiUrl = "https://blynk.cloud/external/api/update?token=X5JZ9FzIfDOhNIajR4Kdr37QOZDA373K"
   const [apiRepsonse, setApiRepsonse] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
@@ -139,12 +140,37 @@ export default function App() {
   async function garageOpen(status) {
     try {
       setProgressVisible(true);
-      (await fetch(apiUrl + 'open'))
+      var request = new XMLHttpRequest();
+      request.onreadystatechange = (e) => {
+        if (request.readyState !== 4) {
+          return;
+        }
+        
+        setProgressVisible(false);
+        if (request.status == 200){
+          setMessage("Bariyeri açma emri gönderildi!");
+          setApiRepsonse({response: "ok", success: request.status == 200});
+        }
+        else{
+          var jsonRes = JSON.parse(request.response);
+          setMessage(jsonRes.error.message);
+          setApiRepsonse({response: jsonRes.error.message, success: false});
+          console.warn(request.response);
+        }
+        setShowMessage(true);
+        Analytics.logEvent('ProktekGarage', apiRepsonse);
+      };
+      request.open('GET', apiUrl + '&v0=1');
+      request.send();
+      return;
+
+      (await fetch(apiUrl + '&v0=1'))
       .json()
       .then(res => {
         setProgressVisible(false);
-        setMessage(res.success ? "Bariyeri açma emri gönderildi!" : apiRepsonse.response);
-        setApiRepsonse(res);
+        //setMessage(res.success ? "Bariyeri açma emri gönderildi!" : apiRepsonse.response);
+        setMessage(res.status == 200 ? "Bariyeri açma emri gönderildi!" : res.error.message);
+        setApiRepsonse({response: "ok", success: res.status == 200});
         setShowMessage(true);
         Analytics.logEvent('ProktekGarage', res);
       })
@@ -171,28 +197,32 @@ export default function App() {
   async function garageTest() {
     try {
       setProgressVisible(true);
-      (await fetch(apiUrl + 'test'))
-      .json()
-      .then(res => {
+      var request = new XMLHttpRequest();
+      request.onreadystatechange = (e) => {
+        if (request.readyState !== 4) {
+          return;
+        }
+        
         setProgressVisible(false);
-        setMessage(res.success ? "Aygıt ile bağlantı başarılı." : apiRepsonse.response);
-        setApiRepsonse(res);
+        if (request.status == 200){
+          setMessage("Aygıt ile bağlantı başarılı.");
+          setApiRepsonse({response: "ok", success: request.status == 200});
+        }
+        else{
+          var jsonRes = JSON.parse(request.response);
+          setMessage(jsonRes.error.message);
+          setApiRepsonse({response: jsonRes.error.message, success: false});
+          console.warn(request.response);
+        }
         setShowMessage(true);
-        Analytics.logEvent('ProktekGarage', res);
-      })
-      .catch((error) => {        
-        setProgressVisible(false);
-        console.log(error);
-        setMessage('Hata: ' + error.message);
-        setApiRepsonse({response: error.message, success:false});
-        setShowMessage(true);
-        Analytics.logEvent('ProktekGarage', error);
-      });
-      Analytics.logEvent('ProktekGarage', {garage: 'Open', deviceId: deviceId});
+        Analytics.logEvent('ProktekGarage', apiRepsonse);
+      };
+      request.open('GET', apiUrl + '&v1=1');
+      request.send();
     }
     catch (error){
       setProgressVisible(false);
-      console.log(error);
+      console.log('error', error);
       setMessage('Hata: ' + error.message);
       setApiRepsonse({response: error.message, success:false});
       setShowMessage(true);
